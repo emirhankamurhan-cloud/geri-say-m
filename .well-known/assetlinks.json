@@ -1,1 +1,8 @@
-
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "io.github.emirhankamurhan_cloud.twa",
+    "sha256_cert_fingerprints": ["0F:76:52:6A:DF:BE:5B:95:39:52:CF:43:F7:9B:34:5B:31:FC:26:17:26:F5:9A:00:45:63:40:AD:C8:F8:DC:74"]
+  }
+}]
