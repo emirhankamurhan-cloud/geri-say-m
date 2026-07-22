@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#10121b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Geri Sayım">
+<title>Geri Sayım</title>
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #10121b;
+    --bg-elevated: #171a26;
+    --panel: #1d2032;
+    --track: #262a40;
+    --accent: #ff9d5c;
+    --accent-dim: #ff9d5c33;
+    --text: #f2f0ec;
+    --text-dim: #9b9db0;
+    --border: #2a2e42;
+    --radius: 20px;
+    --danger: #ff6b6b;
+  }
+
+  *{ box-sizing: border-box; }
+  html,body{ margin:0; padding:0; }
+
+  body{
+    background: radial-gradient(circle at 20% -10%, #1c2036 0%, var(--bg) 55%);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app{
+    max-width: 460px;
+    margin: 0 auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 28px 18px 100px;
+    position: relative;
+  }
+
+  header{
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 22px;
+  }
+
+  header .title{
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  header .count{
+    font-size: 13px;
+    color: var(--text-dim);
+    font-weight: 500;
+  }
+
+  .empty{
+    margin-top: 80px;
+    text-align: center;
+    color: var(--text-dim);
+  }
+
+  .empty .glyph{
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 44px;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+
+  .empty p{ margin: 4px 0; font-size: 14px; line-height: 1.5; }
+
+  .grid{
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .card{
+    position: relative;
+    border-radius: var(--radius);
+    padding: 18px 18px 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    animation: rise .35s ease both;
+    isolation: isolate;
+  }
+
+  @keyframes rise{
+    from{ opacity: 0; transform: translateY(8px); }
+    to{ opacity: 1; transform: translateY(0); }
+  }
+
+  .card .bgLayer{
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+  }
+
+  .card .scrim{
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.18) 100%);
+    z-index: -1;
+  }
+
+  .card-top{
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .card-name{
+    font-weight: 600;
+    font-size: 15px;
+    line-height: 1.3;
+  }
+
+  .card-date{
+    font-size: 12px;
+    opacity: .75;
+    margin-top: 2px;
+  }
+
+  .icon-btn{
+    background: rgba(255,255,255,.12);
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: inherit;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background .15s;
+  }
+  .icon-btn:hover{ background: rgba(255,255,255,.22); }
+  .icon-btn svg{ width: 16px; height: 16px; }
+
+  .card-actions{ display:flex; gap: 6px; }
+
+  .stat-row{
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-top: 18px;
+  }
+
+  .stat-num{
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 34px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .stat-sub{
+    font-size: 12px;
+    opacity: .7;
+    text-align: right;
+    line-height: 1.4;
+  }
+
+  .bar-wrap{
+    margin-top: 12px;
+    height: 8px;
+    border-radius: 99px;
+    background: rgba(255,255,255,.14);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .bar-fill{
+    position: absolute;
+    inset: 0;
+    width: 0%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--accent), #ffd08a);
+    transition: width .6s cubic-bezier(.22,1,.36,1);
+  }
+
+  .bar-labels{
+    display: flex;
+    justify-content: space-between;
+    margin-top: 7px;
+    font-size: 11px;
+    opacity: .65;
+    font-weight: 500;
+  }
+
+  .fab{
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(calc(-50% + 0px));
+    max-width: 460px;
+    width: calc(100% - 36px);
+    display: flex;
+    justify-content: flex-end;
+    pointer-events: none;
+  }
+
+  .fab button{
+    pointer-events: all;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #1a1200;
+    border: none;
+    font-size: 26px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 8px 24px -6px #ff9d5c88;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform .15s;
+  }
+  .fab button:active{ transform: scale(.92); }
+
+  /* sheet */
+  .sheet-overlay{
+    position: fixed;
+    inset: 0;
+    background: rgba(6,7,12,.6);
+    backdrop-filter: blur(2px);
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 50;
+  }
+  .sheet-overlay.open{ display: flex; }
+
+  .sheet{
+    width: 100%;
+    max-width: 460px;
+    background: var(--bg-elevated);
+    border-radius: 22px 22px 0 0;
+    padding: 22px 20px 28px;
+    border: 1px solid var(--border);
+    border-bottom: none;
+    animation: slideUp .28s ease;
+    max-height: 86vh;
+    overflow-y: auto;
+  }
+
+  @keyframes slideUp{
+    from{ transform: translateY(30px); opacity: 0; }
+    to{ transform: translateY(0); opacity: 1; }
+  }
+
+  .sheet h2{
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 19px;
+    margin: 0 0 18px;
+  }
+
+  .field{ margin-bottom: 16px; }
+  .field label{
+    display: block;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 7px;
+    font-weight: 500;
+  }
+  .field input[type="text"],
+  .field input[type="date"]{
+    width: 100%;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 12px 13px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-family: inherit;
+  }
+  .field input:focus{ outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .swatches{
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .swatch{
+    height: 52px;
+    border-radius: 12px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    position: relative;
+  }
+  .swatch.active{ border-color: var(--accent); }
+  .swatch.custom{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--panel);
+    border: 1px dashed var(--border);
+    color: var(--text-dim);
+    font-size: 11px;
+  }
+
+  .colorpick-row{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .colorpick-row input[type="color"]{
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: none;
+    padding: 0;
+    cursor: pointer;
+  }
+  .colorpick-row span{ font-size: 13px; color: var(--text-dim); }
+
+  .sheet-btns{
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  .btn{
+    flex: 1;
+    padding: 13px;
+    border-radius: 13px;
+    border: none;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-primary{ background: var(--accent); color: #1a1200; }
+  .btn-ghost{ background: var(--panel); color: var(--text); border: 1px solid var(--border); }
+  .btn-danger{ background: transparent; color: var(--danger); border: 1px solid #ff6b6b44; }
+
+  .loading{
+    text-align: center;
+    color: var(--text-dim);
+    margin-top: 60px;
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+  <header>
+    <div class="title">Geri Sayım</div>
+    <div class="count" id="widgetCount"></div>
+  </header>
+
+  <div id="content" class="loading">Yükleniyor…</div>
+</div>
+
+<div class="fab"><button id="addBtn" aria-label="Yeni geri sayım ekle">+</button></div>
+
+<div class="sheet-overlay" id="sheetOverlay">
+  <div class="sheet" id="sheetContent"></div>
+</div>
+
+<script>
+const PRESETS = [
+  { name: 'Kehribar', css: 'linear-gradient(135deg,#3a2a1e,#ff9d5c)' },
+  { name: 'Gece', css: 'linear-gradient(135deg,#151a2e,#3d4a7a)' },
+  { name: 'Nane', css: 'linear-gradient(135deg,#123328,#2fbf8f)' },
+  { name: 'Erik', css: 'linear-gradient(135deg,#2a1030,#a24d9e)' },
+  { name: 'Mürekkep', css: '#1d2032' },
+  { name: 'Bordo', css: 'linear-gradient(135deg,#2b0f14,#c1445e)' },
+  { name: 'Okyanus', css: 'linear-gradient(135deg,#0c2233,#2a8fbd)' },
+];
+
+let widgets = [];
+let editingId = null;
+
+const contentEl = document.getElementById('content');
+const countEl = document.getElementById('widgetCount');
+const overlay = document.getElementById('sheetOverlay');
+const sheetContent = document.getElementById('sheetContent');
+
+function uid(){ return 'w_' + Math.random().toString(36).slice(2,9) + Date.now().toString(36); }
+
+async function loadWidgets(){
+  try{
+    const res = await window.storage.get('countdown-widgets');
+    widgets = res && res.value ? JSON.parse(res.value) : [];
+  }catch(e){
+    widgets = [];
+  }
+  render();
+}
+
+async function saveWidgets(){
+  try{
+    await window.storage.set('countdown-widgets', JSON.stringify(widgets));
+  }catch(e){
+    console.error('Kaydedilemedi', e);
+  }
+}
+
+function daysBetween(a, b){
+  const MS = 24*60*60*1000;
+  return Math.round((b - a) / MS);
+}
+
+function computeStats(w){
+  const now = new Date();
+  const start = new Date(w.start);
+  const end = new Date(w.target);
+  const totalDays = Math.max(daysBetween(start, end), 1);
+  const elapsedDays = daysBetween(start, now);
+  const remainingDays = daysBetween(now, end);
+  let percent = (elapsedDays / totalDays) * 100;
+  percent = Math.max(0, Math.min(100, percent));
+  const done = remainingDays <= 0;
+  return { totalDays, elapsedDays: Math.max(0, elapsedDays), remainingDays: Math.max(0, remainingDays), percent, done };
+}
+
+function luminance(hex){
+  hex = hex.replace('#','');
+  if(hex.length===3) hex = hex.split('').map(c=>c+c).join('');
+  const r = parseInt(hex.substr(0,2),16)/255;
+  const g = parseInt(hex.substr(2,2),16)/255;
+  const b = parseInt(hex.substr(4,2),16)/255;
+  return 0.2126*r + 0.7152*g + 0.0722*b;
+}
+
+function textColorFor(bg){
+  if(bg && bg.startsWith('#')){
+    return luminance(bg) > 0.55 ? '#141414' : '#f2f0ec';
+  }
+  return '#f2f0ec';
+}
+
+function fmtDate(iso){
+  const d = new Date(iso);
+  return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function render(){
+  countEl.textContent = widgets.length ? widgets.length + ' aktif' : '';
+
+  if(widgets.length === 0){
+    contentEl.innerHTML = `
+      <div class="empty">
+        <div class="glyph">⏳</div>
+        <p>Henüz bir geri sayımın yok.</p>
+        <p>Sağ alttaki <strong>+</strong> ile ilk widget'ını oluştur.</p>
+      </div>`;
+    return;
+  }
+
+  contentEl.className = 'grid';
+  contentEl.innerHTML = widgets.map(w => {
+    const s = computeStats(w);
+    const textColor = textColorFor(w.bg);
+    const bgStyle = w.bg && w.bg.startsWith('#') ? w.bg : (w.bg || PRESETS[0].css);
+    return `
+    <div class="card" style="color:${textColor}" data-id="${w.id}">
+      <div class="bgLayer" style="background:${bgStyle}"></div>
+      <div class="scrim"></div>
+      <div class="card-top">
+        <div>
+          <div class="card-name">${escapeHtml(w.title)}</div>
+          <div class="card-date">${fmtDate(w.target)} hedefi</div>
+        </div>
+        <div class="card-actions">
+          <button class="icon-btn" data-action="edit" title="Düzenle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          </button>
+          <button class="icon-btn" data-action="delete" title="Sil">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-num">${s.done ? 'Bitti' : Math.round(s.percent) + '%'}</div>
+        <div class="stat-sub">${s.done ? 'Hedef tarihe ulaşıldı' : s.remainingDays + ' gün kaldı'}</div>
+      </div>
+      <div class="bar-wrap"><div class="bar-fill" style="width:${s.percent}%"></div></div>
+      <div class="bar-labels">
+        <span>${fmtDate(w.start)}</span>
+        <span>${fmtDate(w.target)}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  contentEl.querySelectorAll('.card').forEach(card => {
+    const id = card.dataset.id;
+    card.querySelector('[data-action="edit"]').addEventListener('click', (e) => { e.stopPropagation(); openSheet(id); });
+    card.querySelector('[data-action="delete"]').addEventListener('click', (e) => { e.stopPropagation(); deleteWidget(id); });
+  });
+}
+
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function deleteWidget(id){
+  widgets = widgets.filter(w => w.id !== id);
+  saveWidgets();
+  render();
+}
+
+function openSheet(id){
+  editingId = id || null;
+  const w = editingId ? widgets.find(x => x.id === editingId) : null;
+
+  const today = new Date().toISOString().slice(0,10);
+
+  sheetContent.innerHTML = `
+    <h2>${w ? 'Widget’ı düzenle' : 'Yeni geri sayım'}</h2>
+    <div class="field">
+      <label>Başlık</label>
+      <input type="text" id="fTitle" placeholder="Örn. Tatile kalan gün" value="${w ? escapeHtml(w.title) : ''}">
+    </div>
+    <div class="field">
+      <label>Hedef tarih</label>
+      <input type="date" id="fTarget" value="${w ? w.target.slice(0,10) : ''}" min="${today}">
+    </div>
+    <div class="field">
+      <label>Arka plan</label>
+      <div class="swatches" id="swatchGrid"></div>
+      <div class="colorpick-row">
+        <input type="color" id="fCustomColor" value="${w && w.bg && w.bg.startsWith('#') ? w.bg : '#ff9d5c'}">
+        <span>veya özel bir renk seç</span>
+      </div>
+    </div>
+    <div class="sheet-btns">
+      <button class="btn btn-ghost" id="cancelBtn">Vazgeç</button>
+      ${w ? '<button class="btn btn-danger" id="deleteBtn">Sil</button>' : ''}
+      <button class="btn btn-primary" id="saveBtn">${w ? 'Kaydet' : 'Oluştur'}</button>
+    </div>
+  `;
+
+  let selectedBg = w ? w.bg : PRESETS[0].css;
+
+  const swatchGrid = document.getElementById('swatchGrid');
+  swatchGrid.innerHTML = PRESETS.map(p => `<div class="swatch" data-bg="${escapeHtml(p.css)}" style="background:${p.css}" title="${p.name}"></div>`).join('');
+
+  function refreshActive(){
+    swatchGrid.querySelectorAll('.swatch').forEach(s => {
+      s.classList.toggle('active', s.dataset.bg === selectedBg);
+    });
+  }
+  refreshActive();
+
+  swatchGrid.querySelectorAll('.swatch').forEach(s => {
+    s.addEventListener('click', () => {
+      selectedBg = s.dataset.bg;
+      refreshActive();
+    });
+  });
+
+  document.getElementById('fCustomColor').addEventListener('input', (e) => {
+    selectedBg = e.target.value;
+    refreshActive();
+  });
+
+  document.getElementById('cancelBtn').addEventListener('click', closeSheet);
+  if(w){
+    document.getElementById('deleteBtn').addEventListener('click', () => { deleteWidget(w.id); closeSheet(); });
+  }
+  document.getElementById('saveBtn').addEventListener('click', () => {
+    const title = document.getElementById('fTitle').value.trim();
+    const target = document.getElementById('fTarget').value;
+    if(!title || !target){
+      alert('Lütfen başlık ve hedef tarih girin.');
+      return;
+    }
+    if(w){
+      w.title = title;
+      w.target = target;
+      w.bg = selectedBg;
+    }else{
+      widgets.push({
+        id: uid(),
+        title,
+        start: today,
+        target,
+        bg: selectedBg
+      });
+    }
+    saveWidgets();
+    render();
+    closeSheet();
+  });
+
+  overlay.classList.add('open');
+}
+
+function closeSheet(){
+  overlay.classList.remove('open');
+  editingId = null;
+}
+
+document.getElementById('addBtn').addEventListener('click', () => openSheet(null));
+overlay.addEventListener('click', (e) => { if(e.target === overlay) closeSheet(); });
+
+loadWidgets();
+setInterval(render, 60000);
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+  });
+}
+</script>
+
+</body>
+</html>
