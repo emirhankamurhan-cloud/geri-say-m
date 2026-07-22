@@ -1,4 +1,4 @@
-const CACHE_NAME = 'geri-sayim-v1';
+const CACHE_NAME = 'geri-sayim-v2';
 const ASSETS = [
   './index.html',
   './manifest.json',
